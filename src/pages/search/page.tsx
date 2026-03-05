@@ -224,9 +224,10 @@ export function SearchPage() {
     return () => clearTimeout(timeout);
   }, [query, registry]);
 
-  const enrichNbs = async () => {
-    if (!selected) return;
-    const mb = selected.maticniBroj;
+  const enrichNbs = async (entity?: any) => {
+    const target = entity || selected;
+    if (!target) return;
+    const mb = target.maticniBroj;
     console.log("[NBS] Šaljem zahtev:", { maticniBroj: mb, registry });
     setEnriching(true);
     try {
@@ -239,7 +240,7 @@ export function SearchPage() {
       );
       console.log("[NBS] Odgovor:", res);
       if (res.enriched && res.data) {
-        setSelected(res.data);
+        setSelected((prev: any) => prev?.id === res.data.id ? res.data : prev);
         setResults((prev) =>
           prev.map((r) => (r.id === res.data.id ? res.data : r))
         );
@@ -254,6 +255,13 @@ export function SearchPage() {
       setEnriching(false);
     }
   };
+
+  // Automatski preuzmi NBS podatke kad se selektuje entitet bez nbsFetchedAt
+  useEffect(() => {
+    if (selected && !selected.nbsFetchedAt && !enriching) {
+      enrichNbs(selected);
+    }
+  }, [selected?.id]);
 
   const registries: { key: Registry; label: string; icon: any; count?: string }[] = [
     { key: "companies", label: "Pravna lica", icon: Building2 },
@@ -518,9 +526,16 @@ export function SearchPage() {
             {/* NBS status indicator */}
             {!selected.nbsFetchedAt && (
               <div className="rounded-xl border border-dashed border-yellow-300 bg-yellow-50 p-4 text-center">
-                <p className="text-sm text-yellow-800">
-                  NBS podaci nisu preuzeti — klikni "Preuzmi NBS" za PIB, račune i adresu
-                </p>
+                {enriching ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-yellow-700" />
+                    <p className="text-sm text-yellow-800">Preuzimanje NBS podataka...</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-yellow-800">
+                    NBS podaci nisu preuzeti — klikni "Osveži NBS" za ponovan pokušaj
+                  </p>
+                )}
               </div>
             )}
           </div>
