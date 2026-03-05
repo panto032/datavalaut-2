@@ -48,6 +48,7 @@ const syncTypeLabels: Record<string, string> = {
   efaktura: "eFaktura PIB",
   financial: "Finansijski izveštaji",
   "sz-import": "Stambene zajednice",
+  delatnosti: "Šifarnik delatnosti",
 };
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -162,6 +163,7 @@ export function DashboardPage() {
     { type: "ngo", label: "Udruženja (NGO)", description: "Preuzmi udruženja/fondacije iz APR Open API", mode: "auto" as const },
     { type: "efaktura", label: "eFaktura PIB", description: "Obogati PIB-ove iz eFaktura API-ja (treba API ključ)", mode: "auto" as const },
     { type: "sz-import", label: "Stambene zajednice", description: "Uvezi SZ podatke iz JSON fajla", mode: "file" as const },
+    { type: "delatnosti", label: "Šifarnik delatnosti", description: "Popuni opis delatnosti iz zvaničnog šifarnika (615 šifri)", mode: "auto" as const },
   ];
 
   return (

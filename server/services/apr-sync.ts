@@ -2,6 +2,7 @@ import https from "https";
 import { db } from "../db/connection.js";
 import { companies, syncJobs } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+import { getDelatnostOpis } from "../utils/delatnosti.js";
 
 const APR_API = "https://openapi.apr.gov.rs/api/opendata/companies";
 const BATCH_SIZE = 200;
@@ -60,6 +61,7 @@ export async function startAprSync() {
           continue;
         }
 
+        const sifra = record.SifraDelatnosti ? String(record.SifraDelatnosti) : null;
         const entry = {
           poslovnoIme: record.PoslovnoIme || null,
           sifraOpstine: record.SifraOpstine ? String(record.SifraOpstine) : null,
@@ -67,7 +69,8 @@ export async function startAprSync() {
           nazivStatusa: record.NazivStatus || null,
           datumOsnivanja: record.DatumOsnivanja || null,
           nazivPravneForme: record.NazivPravneForme || null,
-          sifraDelatnosti: record.SifraDelatnosti ? String(record.SifraDelatnosti) : null,
+          sifraDelatnosti: sifra,
+          delatnostOpis: sifra ? getDelatnostOpis(sifra) : null,
         };
 
         const [existing] = await db

@@ -11,6 +11,7 @@ import { startNgoSync } from "../services/ngo-sync.js";
 import { startEfakturaSync } from "../services/efaktura-sync.js";
 import { startFinancialSync } from "../services/financial-sync.js";
 import { startSzImport } from "../services/sz-import.js";
+import { startDelatnostiSync } from "../services/delatnosti-sync.js";
 
 const router = Router();
 
@@ -285,6 +286,12 @@ router.post("/sync/sz-import", async (req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// POST /api/admin/sync/delatnosti — popuni opis delatnosti iz šifarnika
+router.post("/sync/delatnosti", async (_req, res) => {
+  res.json({ ok: true, message: "Delatnosti sync pokrenut" });
+  startDelatnostiSync().catch((err) => console.error("Delatnosti sync greška:", err));
 });
 
 export default router;
