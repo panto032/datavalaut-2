@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "./hooks/use-auth";
+import { useAuth, useAuthProvider, AuthContext } from "./hooks/use-auth";
 import { DashboardLayout } from "./components/layout/dashboard-layout";
 import { LoginPage } from "./pages/login";
 import { DashboardPage } from "./pages/dashboard/page";
@@ -21,7 +21,7 @@ function LoginWrapper() {
   return <LoginPage onLogin={handleLogin} />;
 }
 
-export default function App() {
+function AppRoutes() {
   const { loading, logout, isAuthenticated } = useAuth();
 
   if (loading) {
@@ -34,12 +34,10 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Login je uvek dostupan */}
       <Route path="/login" element={
         isAuthenticated ? <Navigate to="/" replace /> : <LoginWrapper />
       } />
 
-      {/* Zaštićene rute */}
       {isAuthenticated ? (
         <Route element={<DashboardLayout onLogout={logout} />}>
           <Route path="/" element={<DashboardPage />} />
@@ -54,5 +52,15 @@ export default function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       )}
     </Routes>
+  );
+}
+
+export default function App() {
+  const auth = useAuthProvider();
+
+  return (
+    <AuthContext.Provider value={auth}>
+      <AppRoutes />
+    </AuthContext.Provider>
   );
 }

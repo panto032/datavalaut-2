@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { api, setToken, clearToken } from "../lib/api";
 
 interface User {
@@ -6,7 +6,17 @@ interface User {
   username: string;
 }
 
-export function useAuth() {
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (username: string, password: string) => Promise<any>;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +27,6 @@ export function useAuth() {
       return;
     }
 
-    // Imamo token — proveri da li je validan
     api("/api/admin/me")
       .then((data) => setUser({ id: data.userId, username: "admin" }))
       .catch(() => clearToken())
@@ -40,4 +49,14 @@ export function useAuth() {
   }, []);
 
   return { user, loading, login, logout, isAuthenticated: !!user };
+}
+
+export { AuthContext };
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
 }
