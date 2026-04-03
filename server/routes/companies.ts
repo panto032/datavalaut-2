@@ -4,7 +4,7 @@ import { companies } from "../db/schema.js";
 import { eq, ilike, or, sql } from "drizzle-orm";
 import { apiKeyAuth, ApiKeyRequest } from "../middleware/api-key.js";
 import { scrapeNbs } from "../services/nbs-scraper.js";
-import { getAlternateScript } from "../utils/transliterate.js";
+import { getAlternateScript, latinize } from "../utils/transliterate.js";
 
 const router = Router();
 
@@ -47,7 +47,7 @@ router.get("/by-mb", async (req: ApiKeyRequest, res) => {
           })
           .where(eq(companies.id, company.id))
           .returning();
-        res.json(updated);
+        res.json(latinize(updated));
         return;
       }
     } catch {
@@ -55,7 +55,7 @@ router.get("/by-mb", async (req: ApiKeyRequest, res) => {
     }
   }
 
-  res.json(company);
+  res.json(latinize(company));
 });
 
 // GET /api/v1/companies/search?q=naziv&limit=20
@@ -84,7 +84,7 @@ router.get("/search", async (req: ApiKeyRequest, res) => {
         )
       )
       .limit(limit);
-    res.json(results);
+    res.json(results.map(latinize));
     return;
   }
 
@@ -99,7 +99,7 @@ router.get("/search", async (req: ApiKeyRequest, res) => {
     )
     .limit(limit);
 
-  res.json(results);
+  res.json(results.map(latinize));
 });
 
 // POST /api/v1/companies/update
@@ -138,7 +138,7 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .set(updateData)
       .where(eq(companies.id, existing.id))
       .returning();
-    res.json(updated);
+    res.json(latinize(updated));
   } else {
     if (!poslovnoIme) {
       res.status(400).json({ error: "poslovnoIme je obavezno za novu kompaniju" });
@@ -148,7 +148,7 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .insert(companies)
       .values({ maticniBroj, ...updateData })
       .returning();
-    res.json(created);
+    res.json(latinize(created));
   }
 });
 

@@ -64,3 +64,19 @@ export function getAlternateScript(text: string): string {
   if (hasLatin(text)) return toCyrillic(text);
   return text;
 }
+
+// Transliteracija ćirilice u latinicu za sve string polja objekta
+export function latinize<T>(obj: T): T {
+  if (!obj || typeof obj !== "object") return obj;
+  const result: any = Array.isArray(obj) ? [] : {};
+  for (const [key, value] of Object.entries(obj as any)) {
+    if (typeof value === "string" && hasCyrillic(value)) {
+      result[key] = toLatin(value);
+    } else if (Array.isArray(value)) {
+      result[key] = value.map((v) => (typeof v === "string" && hasCyrillic(v) ? toLatin(v) : v));
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}

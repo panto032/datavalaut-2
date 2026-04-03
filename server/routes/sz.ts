@@ -4,7 +4,7 @@ import { stambeneZajednice } from "../db/schema.js";
 import { eq, ilike, or, and, sql } from "drizzle-orm";
 import { apiKeyAuth, ApiKeyRequest } from "../middleware/api-key.js";
 import { scrapeNbs } from "../services/nbs-scraper.js";
-import { getAlternateScript } from "../utils/transliterate.js";
+import { getAlternateScript, latinize, toLatin, hasCyrillic } from "../utils/transliterate.js";
 
 const router = Router();
 
@@ -46,13 +46,13 @@ router.get("/by-mb", async (req: ApiKeyRequest, res) => {
           })
           .where(eq(stambeneZajednice.id, sz.id))
           .returning();
-        res.json(updated);
+        res.json(latinize(updated));
         return;
       }
     } catch {}
   }
 
-  res.json(sz);
+  res.json(latinize(sz));
 });
 
 // GET /api/v1/sz/by-pib?pib=
@@ -74,7 +74,7 @@ router.get("/by-pib", async (req: ApiKeyRequest, res) => {
     return;
   }
 
-  res.json(sz);
+  res.json(latinize(sz));
 });
 
 // GET /api/v1/sz/search?q=&limit=20
@@ -102,7 +102,7 @@ router.get("/search", async (req: ApiKeyRequest, res) => {
         )
       )
       .limit(limit);
-    res.json(results);
+    res.json(results.map(latinize));
     return;
   }
 
@@ -117,7 +117,7 @@ router.get("/search", async (req: ApiKeyRequest, res) => {
     )
     .limit(limit);
 
-  res.json(results);
+  res.json(results.map(latinize));
 });
 
 // GET /api/v1/sz/opstine
@@ -128,7 +128,7 @@ router.get("/opstine", async (_req, res) => {
     .where(sql`${stambeneZajednice.opstina} IS NOT NULL`)
     .orderBy(stambeneZajednice.opstina);
 
-  res.json(result.map((r) => r.opstina));
+  res.json(result.map((r) => r.opstina && hasCyrillic(r.opstina) ? toLatin(r.opstina) : r.opstina));
 });
 
 // GET /api/v1/sz/mesta?opstina=
@@ -145,7 +145,7 @@ router.get("/mesta", async (req, res) => {
     .where(ilike(stambeneZajednice.opstina, opstina))
     .orderBy(stambeneZajednice.mesto);
 
-  res.json(result.map((r) => r.mesto));
+  res.json(result.map((r) => r.mesto && hasCyrillic(r.mesto) ? toLatin(r.mesto) : r.mesto));
 });
 
 // GET /api/v1/sz/by-opstina?opstina=&mesto=&limit=50
@@ -168,7 +168,7 @@ router.get("/by-opstina", async (req: ApiKeyRequest, res) => {
     .where(and(...conditions))
     .limit(limit);
 
-  res.json(results);
+  res.json(results.map(latinize));
 });
 
 // POST /api/v1/sz/update
@@ -206,7 +206,7 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .set(updateData)
       .where(eq(stambeneZajednice.id, existing.id))
       .returning();
-    res.json(updated);
+    res.json(latinize(updated));
   } else {
     if (!poslovnoIme) {
       res.status(400).json({ error: "poslovnoIme je obavezno za novu SZ" });
@@ -216,7 +216,7 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .insert(stambeneZajednice)
       .values({ maticniBroj, ...updateData })
       .returning();
-    res.json(created);
+    res.json(latinize(created));
   }
 });
 

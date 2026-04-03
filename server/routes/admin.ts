@@ -3,7 +3,7 @@ import { db } from "../db/connection.js";
 import { companies, ngos, stambeneZajednice, financialStatements, syncJobs } from "../db/schema.js";
 import { adminAuth } from "../middleware/admin-auth.js";
 import { sql, desc, eq, ilike, or, and } from "drizzle-orm";
-import { getAlternateScript, toLatin, hasCyrillic } from "../utils/transliterate.js";
+import { getAlternateScript, latinize } from "../utils/transliterate.js";
 import { proveriBlokadu } from "../services/blockade-check.js";
 import { scrapeNbs } from "../services/nbs-scraper.js";
 import { startAprSync } from "../services/apr-sync.js";
@@ -16,22 +16,6 @@ import { startDelatnostiSync } from "../services/delatnosti-sync.js";
 const router = Router();
 
 router.use(adminAuth as any);
-
-// Transliteracija ćirilice u latinicu za sve string polja
-function latinize<T>(obj: T): T {
-  if (!obj || typeof obj !== "object") return obj;
-  const result: any = Array.isArray(obj) ? [] : {};
-  for (const [key, value] of Object.entries(obj as any)) {
-    if (typeof value === "string" && hasCyrillic(value)) {
-      result[key] = toLatin(value);
-    } else if (Array.isArray(value)) {
-      result[key] = value.map((v) => (typeof v === "string" && hasCyrillic(v) ? toLatin(v) : v));
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
-}
 
 // GET /api/admin/stats
 router.get("/stats", async (_req, res) => {
@@ -167,7 +151,7 @@ router.get("/financial", async (req, res) => {
   const results = await db.select().from(financialStatements)
     .where(eq(financialStatements.maticniBroj, mb))
     .orderBy(desc(financialStatements.godinaFi));
-  res.json(results);
+  res.json(results.map(latinize));
 });
 
 // GET /api/admin/blokade?mb=

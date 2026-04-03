@@ -4,7 +4,7 @@ import { ngos } from "../db/schema.js";
 import { eq, ilike, or } from "drizzle-orm";
 import { apiKeyAuth, ApiKeyRequest } from "../middleware/api-key.js";
 import { scrapeNbs } from "../services/nbs-scraper.js";
-import { getAlternateScript } from "../utils/transliterate.js";
+import { getAlternateScript, latinize } from "../utils/transliterate.js";
 
 const router = Router();
 
@@ -46,13 +46,13 @@ router.get("/by-mb", async (req: ApiKeyRequest, res) => {
           })
           .where(eq(ngos.id, ngo.id))
           .returning();
-        res.json(updated);
+        res.json(latinize(updated));
         return;
       }
     } catch {}
   }
 
-  res.json(ngo);
+  res.json(latinize(ngo));
 });
 
 // GET /api/v1/ngos/search?q=&limit=20
@@ -80,7 +80,7 @@ router.get("/search", async (req: ApiKeyRequest, res) => {
         )
       )
       .limit(limit);
-    res.json(results);
+    res.json(results.map(latinize));
     return;
   }
 
@@ -95,7 +95,7 @@ router.get("/search", async (req: ApiKeyRequest, res) => {
     )
     .limit(limit);
 
-  res.json(results);
+  res.json(results.map(latinize));
 });
 
 // POST /api/v1/ngos/update
@@ -130,7 +130,7 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .set(updateData)
       .where(eq(ngos.id, existing.id))
       .returning();
-    res.json(updated);
+    res.json(latinize(updated));
   } else {
     if (!naziv) {
       res.status(400).json({ error: "naziv je obavezan za novo udruženje" });
@@ -140,7 +140,7 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .insert(ngos)
       .values({ maticniBroj, ...updateData })
       .returning();
-    res.json(created);
+    res.json(latinize(created));
   }
 });
 
