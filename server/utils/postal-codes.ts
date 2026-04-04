@@ -1,3 +1,5 @@
+import { toLatin, hasCyrillic } from "./transliterate.js";
+
 const postalCodes: Record<string, string> = {
   "beograd": "11000", "novi sad": "21000", "niš": "18000", "kragujevac": "34000",
   "subotica": "24000", "zrenjanin": "23000", "pančevo": "26000", "čačak": "32000",
@@ -49,6 +51,7 @@ function normalize(text: string): string {
 }
 
 export function getPostalCode(mesto: string): string | null {
-  const normalized = normalize(mesto);
+  const latin = hasCyrillic(mesto) ? toLatin(mesto) : mesto;
+  const normalized = normalize(latin);
   return postalCodes[normalized] ?? null;
 }

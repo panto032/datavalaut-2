@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { toLatin, hasCyrillic } from "../utils/transliterate.js";
 
 interface BlockadeResult {
   maticniBroj: string;
@@ -54,7 +55,7 @@ export async function proveriBlokadu(maticniBroj: string): Promise<BlockadeResul
     return {
       maticniBroj,
       uBlokadi: hasBlockade && iznosBlokade !== null,
-      iznosBlokade,
+      iznosBlokade: iznosBlokade && hasCyrillic(iznosBlokade) ? toLatin(iznosBlokade) : iznosBlokade,
     };
   } catch (err) {
     console.error(`Blockade check failed for ${maticniBroj}:`, err);

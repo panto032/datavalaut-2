@@ -1,6 +1,7 @@
 import https from "https";
 import * as cheerio from "cheerio";
 import { getPostalCode } from "../utils/postal-codes.js";
+import { toLatin, hasCyrillic } from "../utils/transliterate.js";
 
 interface NbsData {
   pib: string | null;
@@ -72,6 +73,11 @@ export async function scrapeNbs(maticniBroj: string): Promise<NbsData | null> {
 
     const opstinaEl = $('td[data-title="Општина"]').first();
     opstina = clean(opstinaEl.length > 0 ? opstinaEl.text().trim() : null);
+
+    // Konvertuj ćirilicu u latinicu pre čuvanja
+    if (adresa && hasCyrillic(adresa)) adresa = toLatin(adresa);
+    if (mesto && hasCyrillic(mesto)) mesto = toLatin(mesto);
+    if (opstina && hasCyrillic(opstina)) opstina = toLatin(opstina);
 
     console.log(`NBS scrape rezultat za ${maticniBroj}: PIB=${pib}, racuni=${racuni.length}, adresa=${adresa}, mesto=${mesto}, opstina=${opstina}`);
 
