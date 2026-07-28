@@ -10,6 +10,23 @@ const router = Router();
 
 router.use(apiKeyAuth as any);
 
+type FilterColumn = Parameters<typeof ilike>[0];
+
+// Baza čuva ćirilicu, a API odgovori se latinizuju (latinize/toLatin), pa se
+// vrednost koju klijent vrati kroz filter mora porediti i sa oba pisma.
+function matchesAnyScript(column: FilterColumn, value: string) {
+  const alt = getAlternateScript(value);
+  return alt === value ? ilike(column, value) : or(ilike(column, value), ilike(column, alt));
+}
+
+// Latinizuj listu vrednosti za dropdown, ukloni duplikate i sortiraj latinicom.
+function uniqueLatinSorted(values: (string | null)[]): string[] {
+  const latin = values
+    .filter((v): v is string => !!v)
+    .map((v) => (hasCyrillic(v) ? toLatin(v) : v));
+  return [...new Set(latin)].sort((a, b) => a.localeCompare(b, "sr-Latn"));
+}
+
 // GET /api/v1/sz/by-mb?mb=
 router.get("/by-mb", async (req: ApiKeyRequest, res) => {
   const mb = req.query.mb as string;
@@ -128,7 +145,9 @@ router.get("/opstine", async (_req, res) => {
     .where(sql`${stambeneZajednice.opstina} IS NOT NULL`)
     .orderBy(stambeneZajednice.opstina);
 
-  res.json(result.map((r) => r.opstina && hasCyrillic(r.opstina) ? toLatin(r.opstina) : r.opstina));
+  // DISTINCT je nad sirovom vrednošću, pa se posle latinizacije isto ime može
+  // pojaviti dvaput (ćirilični i latinični zapis) — spoji ih i sortiraj latinicom.
+  res.json(uniqueLatinSorted(result.map((r) => r.opstina)));
 });
 
 // GET /api/v1/sz/mesta?opstina=
@@ -142,10 +161,10 @@ router.get("/mesta", async (req, res) => {
   const result = await db
     .selectDistinct({ mesto: stambeneZajednice.mesto })
     .from(stambeneZajednice)
-    .where(ilike(stambeneZajednice.opstina, opstina))
+    .where(matchesAnyScript(stambeneZajednice.opstina, opstina))
     .orderBy(stambeneZajednice.mesto);
 
-  res.json(result.map((r) => r.mesto && hasCyrillic(r.mesto) ? toLatin(r.mesto) : r.mesto));
+  res.json(uniqueLatinSorted(result.map((r) => r.mesto)));
 });
 
 // GET /api/v1/sz/by-opstina?opstina=&mesto=&limit=50
@@ -159,8 +178,8 @@ router.get("/by-opstina", async (req: ApiKeyRequest, res) => {
     return;
   }
 
-  const conditions = [ilike(stambeneZajednice.opstina, opstina)];
-  if (mesto) conditions.push(ilike(stambeneZajednice.mesto, mesto));
+  const conditions = [matchesAnyScript(stambeneZajednice.opstina, opstina)];
+  if (mesto) conditions.push(matchesAnyScript(stambeneZajednice.mesto, mesto));
 
   const results = await db
     .select()
