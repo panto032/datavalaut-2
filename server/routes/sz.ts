@@ -19,6 +19,12 @@ function matchesAnyScript(column: FilterColumn, value: string) {
   return alt === value ? ilike(column, value) : or(ilike(column, value), ilike(column, alt));
 }
 
+// Nova tekstualna polja se cuvaju latinicno, isto kao sto radi nbs-scraper —
+// API odgovori su ionako latinizovani, pa baza ostaje doslednog pisma.
+function toLatinText(value: unknown) {
+  return typeof value === "string" && hasCyrillic(value) ? toLatin(value) : value;
+}
+
 // Latinizuj listu vrednosti za dropdown, ukloni duplikate i sortiraj latinicom.
 function uniqueLatinSorted(values: (string | null)[]): string[] {
   const latin = values
@@ -210,10 +216,10 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
   if (telefon !== undefined) updateData.telefon = telefon;
   if (webSajt !== undefined) updateData.webSajt = webSajt;
   if (emailAdresa !== undefined) updateData.emailAdresa = emailAdresa;
-  if (poslovnoIme !== undefined) updateData.poslovnoIme = poslovnoIme;
-  if (adresa !== undefined) updateData.adresa = adresa;
-  if (mesto !== undefined) updateData.mesto = mesto;
-  if (opstina !== undefined) updateData.opstina = opstina;
+  if (poslovnoIme !== undefined) updateData.poslovnoIme = toLatinText(poslovnoIme);
+  if (adresa !== undefined) updateData.adresa = toLatinText(adresa);
+  if (mesto !== undefined) updateData.mesto = toLatinText(mesto);
+  if (opstina !== undefined) updateData.opstina = toLatinText(opstina);
 
   updateData.lastUpdatedByApiKey = req.apiKeyId;
   updateData.lastUpdatedAt = new Date();
