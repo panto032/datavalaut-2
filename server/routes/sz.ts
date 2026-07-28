@@ -198,21 +198,27 @@ router.get("/by-opstina", async (req: ApiKeyRequest, res) => {
 
 // POST /api/v1/sz/update
 router.post("/update", async (req: ApiKeyRequest, res) => {
-  const { maticniBroj, telefon, webSajt, emailAdresa, poslovnoIme, adresa, mesto, opstina } =
+  const { maticniBroj, pib, telefon, webSajt, emailAdresa, poslovnoIme, adresa, mesto, opstina } =
     req.body;
 
-  if (!maticniBroj || !/^\d{8}$/.test(maticniBroj)) {
+  if (maticniBroj !== undefined && !/^\d{8}$/.test(maticniBroj)) {
     res.status(400).json({ error: "Matični broj mora biti tačno 8 cifara" });
+    return;
+  }
+  // PIB je ravnopravan identifikator — klijent salje ono sto ima.
+  if (!maticniBroj && !pib) {
+    res.status(400).json({ error: "Potreban je matični broj ili PIB" });
     return;
   }
 
   const [existing] = await db
     .select()
     .from(stambeneZajednice)
-    .where(eq(stambeneZajednice.maticniBroj, maticniBroj))
+    .where(maticniBroj ? eq(stambeneZajednice.maticniBroj, maticniBroj) : eq(stambeneZajednice.pib, pib))
     .limit(1);
 
   const updateData: Record<string, any> = {};
+  if (pib !== undefined) updateData.pib = pib;
   if (telefon !== undefined) updateData.telefon = telefon;
   if (webSajt !== undefined) updateData.webSajt = webSajt;
   if (emailAdresa !== undefined) updateData.emailAdresa = emailAdresa;
@@ -233,6 +239,13 @@ router.post("/update", async (req: ApiKeyRequest, res) => {
       .returning();
     res.json(latinize(updated));
   } else {
+    // maticni_broj je NOT NULL — po samom PIB-u se moze azurirati, ali ne i kreirati.
+    if (!maticniBroj) {
+      res
+        .status(404)
+        .json({ error: "SZ sa tim PIB-om nije pronađena; za kreiranje nove je potreban matični broj" });
+      return;
+    }
     if (!poslovnoIme) {
       res.status(400).json({ error: "poslovnoIme je obavezno za novu SZ" });
       return;
