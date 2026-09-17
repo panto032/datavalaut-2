@@ -6,7 +6,12 @@ import { eq } from "drizzle-orm";
 const EFAKTURA_API = "https://efaktura.mfin.gov.rs/api/publicApi/getAllCompanies?includeAllStatuses=true";
 const BATCH_SIZE = 200;
 
-function fetchEfaktura(apiKey: string): Promise<any[]> {
+function isoDatum(value: string | null | undefined): string | null {
+  if (!value) return null;
+  return String(value).slice(0, 10);
+}
+
+function fetchEfaktura(apiKey?: string): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const url = new URL(EFAKTURA_API);
     const options = {
@@ -15,7 +20,7 @@ function fetchEfaktura(apiKey: string): Promise<any[]> {
       method: "GET",
       timeout: 120000,
       headers: {
-        ApiKey: apiKey,
+        ...(apiKey ? { ApiKey: apiKey } : {}),
         Accept: "application/json",
         "User-Agent": "DataVault/2.0",
       },
@@ -44,9 +49,6 @@ function fetchEfaktura(apiKey: string): Promise<any[]> {
 
 export async function startEfakturaSync() {
   const apiKey = process.env.EFAKTURA_API_KEY;
-  if (!apiKey) {
-    throw new Error("EFAKTURA_API_KEY environment varijabla nije podešena");
-  }
 
   const [job] = await db
     .insert(syncJobs)
@@ -75,6 +77,10 @@ export async function startEfakturaSync() {
       for (const record of batch) {
         const mb = String(record.RegistrationCode || "").trim();
         const pib = String(record.VatRegistrationCode || "").trim();
+        const jbkjs = String(record.BugetCompanyNumber || "").trim() || null;
+        const sefDatumRegistracije = isoDatum(record.RegistrationDate);
+        const sefDatumBrisanja = isoDatum(record.DeletionDate);
+        const sefRegistrovan = !sefDatumBrisanja;
 
         // Samo 8-cifreni matični brojevi (ne JMBG-ovi)
         if (!/^\d{8}$/.test(mb)) {
@@ -89,31 +95,35 @@ export async function startEfakturaSync() {
           .limit(1);
 
         if (existing) {
-          // Ažuriraj PIB ako je različit ili nedostaje
-          if (pib && existing.pib !== pib) {
-            const newSource = existing.dataSource && existing.dataSource !== "efaktura"
-              ? `${existing.dataSource}+efaktura`
-              : "efaktura";
-            await db
-              .update(companies)
-              .set({ pib, dataSource: newSource, lastUpdatedAt: new Date() })
-              .where(eq(companies.id, existing.id));
+          const izmene: Record<string, any> = {};
+          if (pib && existing.pib !== pib) izmene.pib = pib;
+          if (existing.jbkjs !== jbkjs) izmene.jbkjs = jbkjs;
+          if (existing.sefRegistrovan !== sefRegistrovan) izmene.sefRegistrovan = sefRegistrovan;
+          if (existing.sefDatumRegistracije !== sefDatumRegistracije)
+            izmene.sefDatumRegistracije = sefDatumRegistracije;
+          if (existing.sefDatumBrisanja !== sefDatumBrisanja)
+            izmene.sefDatumBrisanja = sefDatumBrisanja;
+
+          if (Object.keys(izmene).length > 0) {
+            const izvori = new Set((existing.dataSource || "").split("+").filter(Boolean));
+            izvori.add("efaktura");
+            izmene.dataSource = [...izvori].join("+");
+            izmene.lastUpdatedAt = new Date();
+            await db.update(companies).set(izmene).where(eq(companies.id, existing.id));
             updatedCount++;
           } else {
             unchangedCount++;
           }
         } else {
-          // Nova kompanija iz eFakture
-          const naziv = record.Name || null;
-          const datumOsnivanja = record.RegistrationDate || null;
-          const status = record.DeletionDate ? "Брисан" : "Активан";
-
+          // Nova kompanija iz eFakture — SEF ne daje datum osnivanja ni APR status
           await db.insert(companies).values({
             maticniBroj: mb,
-            poslovnoIme: naziv,
+            poslovnoIme: record.Name || null,
             pib: pib || null,
-            datumOsnivanja,
-            nazivStatusa: status,
+            jbkjs,
+            sefRegistrovan,
+            sefDatumRegistracije,
+            sefDatumBrisanja,
             dataSource: "efaktura",
           });
           newCount++;
@@ -148,7 +158,7 @@ export async function startEfakturaSync() {
       })
       .where(eq(syncJobs.id, job.id));
 
-    console.log(`eFaktura sync završen: ${newCount} novih, ${updatedCount} ažuriranih PIB-ova`);
+    console.log(`eFaktura sync završen: ${newCount} novih, ${updatedCount} ažuriranih`);
     return job.id;
   } catch (err: any) {
     console.error("eFaktura sync greška:", err);

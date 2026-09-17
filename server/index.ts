@@ -13,6 +13,7 @@ import szRoutes from "./routes/sz.js";
 import ngosRoutes from "./routes/ngos.js";
 import financialRoutes from "./routes/financial.js";
 import blokadeRoutes from "./routes/blokade.js";
+import sefRoutes from "./routes/sef.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -30,6 +31,7 @@ app.use("/api/v1/sz", szRoutes);
 app.use("/api/v1/ngos", ngosRoutes);
 app.use("/api/v1/financial", financialRoutes);
 app.use("/api/v1/blokade", blokadeRoutes);
+app.use("/api/v1/sef", sefRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

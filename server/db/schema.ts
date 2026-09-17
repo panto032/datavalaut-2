@@ -40,6 +40,11 @@ export const companies = pgTable(
     nbsOpstina: text("nbs_opstina"),
     postanskiBroj: varchar("postanski_broj", { length: 10 }),
     nbsFetchedAt: timestamp("nbs_fetched_at"),
+    // eFaktura (SEF)
+    jbkjs: varchar({ length: 10 }),
+    sefRegistrovan: boolean("sef_registrovan"),
+    sefDatumRegistracije: text("sef_datum_registracije"),
+    sefDatumBrisanja: text("sef_datum_brisanja"),
     // Contact
     telefon: text(),
     webSajt: text("web_sajt"),
@@ -58,6 +63,7 @@ export const companies = pgTable(
     index("companies_opstina_idx").on(table.nazivOpstine),
     index("companies_status_idx").on(table.nazivStatusa),
     index("companies_delatnost_idx").on(table.sifraDelatnosti),
+    index("companies_jbkjs_idx").on(table.jbkjs),
   ]
 );
 

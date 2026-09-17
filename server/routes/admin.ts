@@ -243,10 +243,6 @@ router.post("/sync/ngo", async (_req, res) => {
 
 // POST /api/admin/sync/efaktura — pozadinski proces
 router.post("/sync/efaktura", async (_req, res) => {
-  if (!process.env.EFAKTURA_API_KEY) {
-    res.status(400).json({ error: "EFAKTURA_API_KEY nije podešen u environment varijablama" });
-    return;
-  }
   res.json({ ok: true, message: "eFaktura sync pokrenut" });
   startEfakturaSync().catch((err) => console.error("eFaktura sync greška:", err));
 });

@@ -45,7 +45,7 @@ interface SyncJob {
 const syncTypeLabels: Record<string, string> = {
   apr: "APR kompanija",
   ngo: "Udruženja",
-  efaktura: "eFaktura PIB",
+  efaktura: "eFaktura / SEF",
   financial: "Finansijski izveštaji",
   "sz-import": "Stambene zajednice",
   delatnosti: "Šifarnik delatnosti",
@@ -161,7 +161,7 @@ export function DashboardPage() {
     { type: "apr", label: "APR kompanija", description: "Preuzmi ~294K pravnih lica iz APR Open API", mode: "auto" as const },
     { type: "financial", label: "Finansijski izveštaji", description: "Preuzmi finansijske izveštaje iz APR Open API", mode: "auto" as const },
     { type: "ngo", label: "Udruženja (NGO)", description: "Preuzmi udruženja/fondacije iz APR Open API", mode: "auto" as const },
-    { type: "efaktura", label: "eFaktura PIB", description: "Obogati PIB-ove iz eFaktura API-ja (treba API ključ)", mode: "auto" as const },
+    { type: "efaktura", label: "eFaktura / SEF", description: "PIB, JBKJS i status registracije na SEF-u", mode: "auto" as const },
     { type: "sz-import", label: "Stambene zajednice", description: "Uvezi SZ podatke iz JSON fajla", mode: "file" as const },
     { type: "delatnosti", label: "Šifarnik delatnosti", description: "Popuni opis delatnosti iz zvaničnog šifarnika (615 šifri)", mode: "auto" as const },
   ];

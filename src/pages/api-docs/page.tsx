@@ -70,6 +70,20 @@ const sections: { title: string; base: string; endpoints: Endpoint[] }[] = [
     ],
   },
   {
+    title: "eFaktura (SEF)",
+    base: "/api/v1/sef",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/check?mb=",
+        description:
+          "Provera registracije na SEF-u u realnom vremenu. Budžetski korisnici se proveravaju po JBKJS-u — dopunjuje se automatski iz baze ako postoji.",
+        params: "bar jedan od: mb (8 cifara), pib, jbkjs",
+        example: `curl -H "Authorization: Bearer sk_..." "https://api.example.com/api/v1/sef/check?mb=12345678"`,
+      },
+    ],
+  },
+  {
     title: "Blokade",
     base: "/api/v1/blokade",
     endpoints: [
