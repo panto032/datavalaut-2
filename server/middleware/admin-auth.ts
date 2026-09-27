@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
+const jwtSecretEnv = process.env.JWT_SECRET;
+if (!jwtSecretEnv) {
+  throw new Error("JWT_SECRET nije podešen u environment varijablama");
+}
+const JWT_SECRET: string = jwtSecretEnv;
 
 export interface AdminRequest extends Request {
   adminId?: number;
