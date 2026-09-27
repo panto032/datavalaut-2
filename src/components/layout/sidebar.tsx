@@ -4,6 +4,7 @@ import {
   Search,
   FileBarChart,
   ShieldAlert,
+  Percent,
   Key,
   BookOpen,
   LogOut,
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/search", icon: Search, label: "Pretraga" },
   { to: "/finansije", icon: FileBarChart, label: "Finansije" },
   { to: "/blokade", icon: ShieldAlert, label: "Blokade" },
+  { to: "/pdv", icon: Percent, label: "PDV provera" },
   { to: "/api-keys", icon: Key, label: "API ključevi" },
   { to: "/api-docs", icon: BookOpen, label: "API dokumentacija" },
 ];

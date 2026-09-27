@@ -6,6 +6,7 @@ import { DashboardPage } from "./pages/dashboard/page";
 import { SearchPage } from "./pages/search/page";
 import { FinansijePage } from "./pages/finansije/page";
 import { BlokadePage } from "./pages/blokade/page";
+import { PdvPage } from "./pages/pdv/page";
 import { ApiKeysPage } from "./pages/api-keys/page";
 import { ApiDocsPage } from "./pages/api-docs/page";
 
@@ -44,6 +45,7 @@ function AppRoutes() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/finansije" element={<FinansijePage />} />
           <Route path="/blokade" element={<BlokadePage />} />
+          <Route path="/pdv" element={<PdvPage />} />
           <Route path="/api-keys" element={<ApiKeysPage />} />
           <Route path="/api-docs" element={<ApiDocsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

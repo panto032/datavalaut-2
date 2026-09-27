@@ -14,6 +14,7 @@ import ngosRoutes from "./routes/ngos.js";
 import financialRoutes from "./routes/financial.js";
 import blokadeRoutes from "./routes/blokade.js";
 import sefRoutes from "./routes/sef.js";
+import pdvRoutes from "./routes/pdv.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -32,6 +33,7 @@ app.use("/api/v1/ngos", ngosRoutes);
 app.use("/api/v1/financial", financialRoutes);
 app.use("/api/v1/blokade", blokadeRoutes);
 app.use("/api/v1/sef", sefRoutes);
+app.use("/api/v1/pdv", pdvRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

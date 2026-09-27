@@ -5,6 +5,7 @@ import { adminAuth } from "../middleware/admin-auth.js";
 import { sql, desc, eq, ilike, or, and } from "drizzle-orm";
 import { getAlternateScript, latinize } from "../utils/transliterate.js";
 import { proveriBlokadu } from "../services/blockade-check.js";
+import { proveriPdv } from "../services/pdv-check.js";
 import { scrapeNbs } from "../services/nbs-scraper.js";
 import { startAprSync } from "../services/apr-sync.js";
 import { startNgoSync } from "../services/ngo-sync.js";
@@ -163,6 +164,23 @@ router.get("/blokade", async (req, res) => {
   }
   const result = await proveriBlokadu(mb);
   res.json(result);
+});
+
+// GET /api/admin/pdv?pib=
+router.get("/pdv", async (req, res) => {
+  const pib = (req.query.pib as string)?.trim();
+  if (!pib || !/^\d{9}$/.test(pib)) {
+    res.status(400).json({ error: "PIB mora biti tačno 9 cifara" });
+    return;
+  }
+
+  try {
+    const result = await proveriPdv(pib);
+    res.json(result);
+  } catch (err: any) {
+    console.error("PDV provera greška:", err);
+    res.status(502).json({ error: "Servis Poreske uprave nedostupan" });
+  }
 });
 
 // POST /api/admin/enrich-nbs — NBS obogaćivanje za admin panel

@@ -94,6 +94,20 @@ const sections: { title: string; base: string; endpoints: Endpoint[] }[] = [
       },
     ],
   },
+  {
+    title: "PDV",
+    base: "/api/v1/pdv",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/check?pib=",
+        description:
+          "Provera da li je firma u sistemu PDV, u realnom vremenu (neoficijelno, scraping registra Poreske uprave — podatak se ne čuva u bazi).",
+        params: "pib (obavezno) — PIB, 9 cifara",
+        example: `curl -H "Authorization: Bearer sk_..." "https://api.example.com/api/v1/pdv/check?pib=106411671"`,
+      },
+    ],
+  },
 ];
 
 export function ApiDocsPage() {

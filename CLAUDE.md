@@ -52,3 +52,20 @@ Srpska API platforma za poslovne registre — agregira podatke iz APR-a, NBS-a, 
 - Kreirati PostgreSQL bazu u Coolify
 - Podesiti environment varijable
 - Testirati sve API endpointe
+
+<!-- impulse-validator:pocetak -->
+## Provera pre završetka rada (IMPULSE Validator)
+
+Važi za svaki rad u ovom projektu. Odeljak održava `impulse-validator ukljuci` — ne menjaj ga ručno.
+
+1. **Pre nego što javiš da je posao gotov**, pokreni:
+   ```
+   impulse-validator zavrsi .
+   ```
+   Obim bira sama: izmenjena samo dokumentacija → bez provere; izmenjen kod → provera sa build-om (bez testova i pokretanja aplikacije).
+2. **Ne javljaj „gotovo" dok presuda nije 🟢 MOŽE ili 🟡 UPOZORENJA bez novih problema.** Nove kritične greške i upozorenja koje je tvoj rad napravio popravi, pa pokreni ponovo.
+3. **Nalaz koji smatraš pogrešnim ili namernim** ne rešavaj menjanjem koda niti isključivanjem pravila — upiši ga u `_docs/validator/oboreno.json` sa razlogom i dokazom (fajl, linija, zašto).
+4. **Posle svakog tvog rada** Claude Code sam pušta brzu proveru i vraća ti nove probleme (najviše 3 kruga).
+5. **Pre push-a** git kuka pušta kompletnu proveru (build, testovi i pokretanje aplikacije ako je podešeno). STOP zaustavlja push; `git push --no-verify` samo uz odobrenje čoveka.
+6. Izveštaji su u `_docs/validator/` i ne commituju se.
+<!-- impulse-validator:kraj -->
